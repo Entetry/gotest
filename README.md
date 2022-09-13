@@ -1,0 +1,2 @@
+# gotest
+go trainy proj

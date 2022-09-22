@@ -29,7 +29,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Couldn't connect to database: %s", err)
 	}
-
 	e := echo.New()
 	companyRepository := repository.NewCompanyRepository(db)
 	companyService := service.NewCompany(companyRepository)
@@ -39,7 +38,10 @@ func main() {
 	company.GET("/:id", companyHandler.GetById)
 	company.PUT("", companyHandler.Update)
 	company.DELETE("/:id", companyHandler.Delete)
-	e.Start(fmt.Sprintf(":%d", cfg.Port))
+	err = e.Start(fmt.Sprintf(":%d", cfg.Port))
+	if err != nil {
+		log.Fatal(err)
+	}
 	log.Info("Server started on ", cfg.Port)
 	go func() {
 		<-sigChan

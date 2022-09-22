@@ -17,11 +17,11 @@ func NewCompany(companyService *service.Company) *Company {
 }
 
 func (c *Company) GetById(ctx echo.Context) error {
-	uuid, err := uuid.Parse(ctx.Param("id"))
+	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest)
 	}
-	company, err := c.companyService.GetById(ctx.Request().Context(), uuid)
+	company, err := c.companyService.GetById(ctx.Request().Context(), id)
 
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest)
@@ -59,11 +59,11 @@ func (c *Company) Update(ctx echo.Context) error {
 }
 
 func (c *Company) Delete(ctx echo.Context) error {
-	uuid, err := uuid.Parse(ctx.Param("id"))
+	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest)
 	}
-	err = c.companyService.Delete(ctx.Request().Context(), uuid)
+	err = c.companyService.Delete(ctx.Request().Context(), id)
 
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest)

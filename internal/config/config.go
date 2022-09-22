@@ -5,7 +5,7 @@ import (
 )
 
 type Config struct {
-	Port             int    `env:"PORT" envDefault:"22800"`
+	Port             int    `env:"APP_PORT" envDefault:"22800"`
 	ConnectionString string `env:"CONNECTION_STRING"`
 }
 

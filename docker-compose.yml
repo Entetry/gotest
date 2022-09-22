@@ -41,7 +41,7 @@ services:
     command: -locations=filesystem:migrations -connectRetries=60 migrate
     volumes:
       - my-data:/var/lib/postgresql
-      - ./migrationsЫ
+      - $PWD/migrations
     depends_on:
       - db
     networks:

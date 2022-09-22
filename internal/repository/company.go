@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4/pgxpool"
-	log "github.com/sirupsen/logrus"
 )
 
 type Company struct {
@@ -26,55 +25,19 @@ func (c *Company) Get(ctx context.Context, uuid uuid.UUID) (*model.Company, erro
 }
 
 func (c *Company) Create(ctx context.Context, company *model.Company) error {
-	tx, err := c.db.Begin(ctx)
+	_, err := c.db.Exec(ctx, "INSERT INTO company(id, name) VALUES ($1, $2) RETURNING id, name;",
+		company.ID, company.Name)
 	if err != nil {
-		return err
-	}
-	defer func() {
-		if err != nil {
-			err = tx.Rollback(context.TODO())
-			if err != nil {
-				log.Errorf("rollback wasn't: %v", err)
-			}
-		} else {
-			err = tx.Commit(context.TODO())
-			if err != nil {
-				log.Errorf("rollback wasn't: %v", err)
-			}
-		}
-	}()
-
-	err = tx.QueryRow(ctx, "INSERT INTO company(id, name) VALUES ($1, $2) RETURNING id, name;",
-		company.ID, company.Name).Scan(&company.ID, &company.Name)
-	if err != nil {
-		return err
+		return fmt.Errorf("cannot create Company: %v", err)
 	}
 	return err
 }
 
 func (c *Company) Update(ctx context.Context, company *model.Company) error {
-	tx, err := c.db.Begin(ctx)
+	_, err := c.db.Exec(ctx, "UPDATE company SET name = $2 WHERE id=$1 RETURNING id, name;",
+		company.ID, company.Name)
 	if err != nil {
-		return err
-	}
-	defer func() {
-		if err != nil {
-			err = tx.Rollback(context.TODO())
-			if err != nil {
-				log.Errorf("rollback wasn't: %v", err)
-			}
-		} else {
-			err = tx.Commit(context.TODO())
-			if err != nil {
-				log.Errorf("rollback wasn't: %v", err)
-			}
-		}
-	}()
-
-	err = tx.QueryRow(ctx, "UPDATE company SET name = $2 WHERE id=$1 RETURNING id, name;",
-		company.ID, company.Name).Scan(&company.ID, &company.Name)
-	if err != nil {
-		return err
+		return fmt.Errorf("cannot update Company: %v", err)
 	}
 	return err
 }

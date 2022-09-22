@@ -38,10 +38,9 @@ services:
       - FLYWAY_USER=${POSTGRES_USER}
       - FLYWAY_PASSWORD=${POSTGRES_PASSWORD}
       - FLYWAY_URL=jdbc:postgresql://postgres_db:${POSTGRES_PORT}/${POSTGRES_DB}
-    command: -locations=filesystem:migrations -connectRetries=60 migrate
+    command: -locations=filesystem:/flyway/sql migrate
     volumes:
-      - my-data:/var/lib/postgresql
-      - $PWD/migrations
+      - $PWD/migrations:/flyway/sql
     depends_on:
       - db
     networks:

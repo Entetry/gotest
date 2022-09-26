@@ -1,7 +1,8 @@
 package handlers
 
 import (
-	"entetry/gotest/internal/dto"
+	"entetry/gotest/internal/handlers/request"
+	"entetry/gotest/internal/model"
 	"entetry/gotest/internal/service"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -14,6 +15,14 @@ type Company struct {
 
 func NewCompany(companyService *service.Company) *Company {
 	return &Company{companyService: companyService}
+}
+
+func (c *Company) GetAll(ctx echo.Context) error {
+	companies, err := c.companyService.GetAll(ctx.Request().Context())
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError)
+	}
+	return ctx.JSON(http.StatusOK, companies)
 }
 
 func (c *Company) GetById(ctx echo.Context) error {
@@ -31,25 +40,27 @@ func (c *Company) GetById(ctx echo.Context) error {
 }
 
 func (c *Company) Create(ctx echo.Context) error {
-	request := new(dto.AddCompanyRequest)
+	request := new(request.AddCompanyRequest)
 	err := ctx.Bind(request)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest)
 	}
-	err = c.companyService.Create(ctx.Request().Context(), request)
+	company := &model.Company{Name: request.Name}
+	id, err := c.companyService.Create(ctx.Request().Context(), company)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError)
 	}
-	return ctx.JSON(http.StatusOK, "Company created")
+	return ctx.JSON(http.StatusOK, id)
 }
 
 func (c *Company) Update(ctx echo.Context) error {
-	request := new(dto.UpdateCompanyRequest)
+	request := new(request.UpdateCompanyRequest)
 	err := ctx.Bind(request)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest)
 	}
-	err = c.companyService.Update(ctx.Request().Context(), request)
+	company := &model.Company{ID: request.Uuid, Name: request.Name}
+	err = c.companyService.Update(ctx.Request().Context(), company)
 
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError)

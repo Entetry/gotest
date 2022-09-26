@@ -7,6 +7,7 @@ import (
 type Config struct {
 	Port             int    `env:"APP_PORT" envDefault:"22800"`
 	ConnectionString string `env:"CONNECTION_STRING"`
+	IsMongo          bool   `env:"IS_MONGO" envDefault:"false"`
 }
 
 func New() (*Config, error) {

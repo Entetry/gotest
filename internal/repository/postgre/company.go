@@ -42,7 +42,7 @@ func (c *Company) GetAll(ctx context.Context) ([]*model.Company, error) {
 }
 
 func (c *Company) GetOne(ctx context.Context, uuid uuid.UUID) (*model.Company, error) {
-	company := &model.Company{}
+	var company *model.Company
 	err := c.db.QueryRow(ctx, "SELECT id, name FROM company WHERE id = $1", uuid).Scan(&company.ID, &company.Name)
 	return company, err
 }

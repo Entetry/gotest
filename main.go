@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	repository2 "entetry/gotest/internal/auth/repository"
 	"entetry/gotest/internal/config"
 	"entetry/gotest/internal/handlers"
 	"entetry/gotest/internal/repository"
@@ -30,6 +31,7 @@ func main() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGTERM)
 	var companyRepository repository.CompanyRepository
+	var authRepository repository.Auth
 	if cfg.IsMongo {
 		db, err := mongo.Connect(context.Background(), options.Client().ApplyURI(cfg.ConnectionString))
 		defer func(db *mongo.Client, ctx context.Context) {
@@ -44,6 +46,8 @@ func main() {
 		}
 	} else {
 		db, err := pgxpool.Connect(ctx, cfg.ConnectionString)
+		defer db.Close()
+		authRepository := repository2.NewAuthRepository(db)
 		companyRepository = postgre.NewCompanyRepository(db)
 		if err != nil {
 			log.Fatalf("Couldn't connect to database: %s", err)
@@ -51,6 +55,14 @@ func main() {
 	}
 
 	e := echo.New()
+
+	authService := postgre.NewAuth(authRepository)
+	authHandler := handlers.NewAuth(authService)
+	auth := e.Group("api/auth")
+	auth.POST("/refresh-tokens", authHandler.Refresh)
+	auth.POST("/signin", authHandler.SignIn)
+	auth.POST("/signup", authHandler.SignUp)
+	auth.POST("/logout", authHandler.Logout)
 
 	companyService := service.NewCompany(companyRepository)
 	companyHandler := handlers.NewCompany(companyService)

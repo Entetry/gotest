@@ -7,6 +7,6 @@ type AddCompanyRequest struct {
 }
 
 type UpdateCompanyRequest struct {
-	Uuid uuid.UUID `json:"uuid" validate:"required"`
+	UUID uuid.UUID `json:"uuid" validate:"required"`
 	Name string    `json:"name" validate:"required"`
 }

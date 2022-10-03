@@ -1,11 +1,13 @@
 package handlers
 
 import (
-	"entetry/gotest/internal/model"
-	"entetry/gotest/internal/service"
+	"net/http"
+
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"net/http"
+
+	"entetry/gotest/internal/model"
+	"entetry/gotest/internal/service"
 )
 
 type Company struct {
@@ -24,7 +26,7 @@ func (c *Company) GetAll(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, companies)
 }
 
-func (c *Company) GetById(ctx echo.Context) error {
+func (c *Company) GetByID(ctx echo.Context) error {
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest)
@@ -58,7 +60,7 @@ func (c *Company) Update(ctx echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest)
 	}
-	company := &model.Company{ID: request.Uuid, Name: request.Name}
+	company := &model.Company{ID: request.UUID, Name: request.Name}
 	err = c.companyService.Update(ctx.Request().Context(), company)
 
 	if err != nil {

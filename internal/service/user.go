@@ -2,11 +2,13 @@ package service
 
 import (
 	"context"
-	"entetry/gotest/internal/model"
-	"entetry/gotest/internal/repository/postgre"
+
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
+
+	"entetry/gotest/internal/model"
+	"entetry/gotest/internal/repository/postgre"
 )
 
 type User struct {

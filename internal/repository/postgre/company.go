@@ -2,10 +2,12 @@ package postgre
 
 import (
 	"context"
-	"entetry/gotest/internal/model"
 	"fmt"
+
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4/pgxpool"
+
+	"entetry/gotest/internal/model"
 )
 
 type Company struct {
@@ -41,9 +43,9 @@ func (c *Company) GetAll(ctx context.Context) ([]*model.Company, error) {
 	return results, nil
 }
 
-func (c *Company) GetOne(ctx context.Context, uuid uuid.UUID) (*model.Company, error) {
+func (c *Company) GetOne(ctx context.Context, id uuid.UUID) (*model.Company, error) {
 	var company *model.Company
-	err := c.db.QueryRow(ctx, "SELECT id, name FROM company WHERE id = $1", uuid).Scan(&company.ID, &company.Name)
+	err := c.db.QueryRow(ctx, "SELECT id, name FROM company WHERE id = $1", id).Scan(&company.ID, &company.Name)
 	return company, err
 }
 
@@ -66,8 +68,8 @@ func (c *Company) Update(ctx context.Context, company *model.Company) error {
 	return err
 }
 
-func (c *Company) Delete(ctx context.Context, uuid uuid.UUID) error {
-	_, err := c.db.Exec(ctx, "DELETE FROM company WHERE id = $1", uuid)
+func (c *Company) Delete(ctx context.Context, id uuid.UUID) error {
+	_, err := c.db.Exec(ctx, "DELETE FROM company WHERE id = $1", id)
 	if err != nil {
 		return fmt.Errorf("cannot delete Company: %v", err)
 	}

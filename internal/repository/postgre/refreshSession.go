@@ -2,13 +2,15 @@ package postgre
 
 import (
 	"context"
-	"entetry/gotest/internal/model"
 	"errors"
 	"fmt"
+
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	log "github.com/sirupsen/logrus"
+
+	"entetry/gotest/internal/model"
 )
 
 type RefreshSessionRepository interface {

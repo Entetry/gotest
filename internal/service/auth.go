@@ -2,14 +2,16 @@ package service
 
 import (
 	"context"
-	"entetry/gotest/internal/config"
-	"entetry/gotest/internal/model"
 	"fmt"
+	"time"
+
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
-	"time"
+
+	"entetry/gotest/internal/config"
+	"entetry/gotest/internal/model"
 )
 
 const (
@@ -102,8 +104,8 @@ func (a *Auth) checkFingerprint(session *model.RefreshSession, tokenParam *model
 		tokenParam.Fingerprint == session.Fingerprint
 }
 
-func (a *Auth) attemptLogin(context context.Context, username, password string) (*model.User, error) {
-	user, err := a.userService.GetByUsername(context, username)
+func (a *Auth) attemptLogin(ctx context.Context, username, password string) (*model.User, error) {
+	user, err := a.userService.GetByUsername(ctx, username)
 	if err != nil {
 		return nil, err
 	}

@@ -2,19 +2,21 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"net"
+	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/labstack/echo/v4"
+	log "github.com/sirupsen/logrus"
+
 	"entetry/gotest/internal/config"
 	"entetry/gotest/internal/handlers"
 	"entetry/gotest/internal/middleware"
 	"entetry/gotest/internal/repository/postgre"
 	"entetry/gotest/internal/service"
-	"fmt"
-	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/labstack/echo/v4"
-	log "github.com/sirupsen/logrus"
-	"net"
-	"os"
-	"os/signal"
-	"syscall"
 )
 
 func main() {
@@ -27,14 +29,15 @@ func main() {
 		log.Fatal(err)
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGTERM)
 	db, err := pgxpool.Connect(ctx, cfg.ConnectionString)
+	defer cancel()
+	defer db.Close()
 	if err != nil {
 		log.Fatalf("Couldn't connect to database: %s", err)
 	}
-	defer db.Close()
+
 	refreshSessionRepository := postgre.NewRefresh(db)
 	refreshSessionService := service.NewRefreshSession(refreshSessionRepository)
 
@@ -59,7 +62,7 @@ func main() {
 	company.Use(middleware.NewJwtMiddleware(jwtCfg.AccessTokenKey))
 	company.POST("", companyHandler.Create)
 	company.GET("", companyHandler.GetAll)
-	company.GET("/:id", companyHandler.GetById)
+	company.GET("/:id", companyHandler.GetByID)
 	company.PUT("", companyHandler.Update)
 	company.DELETE("/:id", companyHandler.Delete)
 
@@ -84,5 +87,4 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 }

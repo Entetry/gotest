@@ -2,13 +2,15 @@ package mongodb
 
 import (
 	"context"
-	"entetry/gotest/internal/model"
 	"errors"
 	"fmt"
+
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+
+	"entetry/gotest/internal/model"
 )
 
 type Company struct {
@@ -43,9 +45,9 @@ func (c *Company) GetAll(ctx context.Context) ([]*model.Company, error) {
 	return result, nil
 }
 
-func (c *Company) GetOne(ctx context.Context, uuid uuid.UUID) (*model.Company, error) {
+func (c *Company) GetOne(ctx context.Context, id uuid.UUID) (*model.Company, error) {
 	company := &model.Company{}
-	err := c.db.FindOne(ctx, bson.M{"_id": uuid}).Decode(company)
+	err := c.db.FindOne(ctx, bson.M{"_id": id}).Decode(company)
 	if errors.Is(err, mongo.ErrNoDocuments) {
 		return nil, echo.ErrNotFound
 	} else if err != nil {

@@ -2,9 +2,11 @@ package service
 
 import (
 	"context"
+
+	"github.com/google/uuid"
+
 	"entetry/gotest/internal/model"
 	"entetry/gotest/internal/repository"
-	"github.com/google/uuid"
 )
 
 type Company struct {
@@ -20,8 +22,8 @@ func (c *Company) GetAll(ctx context.Context) ([]*model.Company, error) {
 	return c.companyRepository.GetAll(ctx)
 }
 
-func (c *Company) GetById(ctx context.Context, uuid uuid.UUID) (*model.Company, error) {
-	return c.companyRepository.GetOne(ctx, uuid)
+func (c *Company) GetById(ctx context.Context, id uuid.UUID) (*model.Company, error) {
+	return c.companyRepository.GetOne(ctx, id)
 }
 
 func (c *Company) Create(ctx context.Context, company *model.Company) (uuid.UUID, error) {
@@ -32,6 +34,6 @@ func (c *Company) Update(ctx context.Context, company *model.Company) error {
 	return c.companyRepository.Update(ctx, company)
 }
 
-func (c *Company) Delete(ctx context.Context, uuid uuid.UUID) error {
-	return c.companyRepository.Delete(ctx, uuid)
+func (c *Company) Delete(ctx context.Context, id uuid.UUID) error {
+	return c.companyRepository.Delete(ctx, id)
 }

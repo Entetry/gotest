@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
-	"entetry/gotest/internal/model"
+
 	"github.com/google/uuid"
+
+	"entetry/gotest/internal/model"
 )
 
 type CompanyRepository interface {

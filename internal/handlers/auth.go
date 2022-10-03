@@ -1,12 +1,14 @@
 package handlers
 
 import (
-	"entetry/gotest/internal/model"
-	"entetry/gotest/internal/service"
 	"errors"
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
-	"net/http"
+
+	"entetry/gotest/internal/model"
+	"entetry/gotest/internal/service"
 )
 
 type Auth struct {

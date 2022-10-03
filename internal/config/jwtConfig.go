@@ -1,8 +1,9 @@
 package config
 
 import (
-	"github.com/caarlos0/env/v6"
 	"time"
+
+	"github.com/caarlos0/env/v6"
 )
 
 type JwtConfig struct {

@@ -1,4 +1,4 @@
-package request
+package handlers
 
 import "github.com/google/uuid"
 

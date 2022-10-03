@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"entetry/gotest/internal/handlers/request"
 	"entetry/gotest/internal/model"
 	"entetry/gotest/internal/service"
 	"github.com/google/uuid"
@@ -40,7 +39,7 @@ func (c *Company) GetById(ctx echo.Context) error {
 }
 
 func (c *Company) Create(ctx echo.Context) error {
-	request := new(request.AddCompanyRequest)
+	request := new(AddCompanyRequest)
 	err := ctx.Bind(request)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest)
@@ -54,7 +53,7 @@ func (c *Company) Create(ctx echo.Context) error {
 }
 
 func (c *Company) Update(ctx echo.Context) error {
-	request := new(request.UpdateCompanyRequest)
+	request := new(UpdateCompanyRequest)
 	err := ctx.Bind(request)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest)

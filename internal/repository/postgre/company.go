@@ -52,7 +52,7 @@ func (c *Company) Create(ctx context.Context, company *model.Company) (uuid.UUID
 	err := c.db.QueryRow(ctx, "INSERT INTO company(id, name) VALUES ($1, $2) RETURNING id, name;",
 		company.ID, company.Name).Scan(&company.ID, &company.Name)
 	if err != nil {
-		return company.ID, fmt.Errorf("cannot create Company: %v", err)
+		return uuid.Nil, fmt.Errorf("cannot create Company: %v", err)
 	}
 	return company.ID, err
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	log "github.com/sirupsen/logrus"
 
 	"entetry/gotest/internal/model"
 	"entetry/gotest/internal/service"
@@ -44,7 +45,14 @@ func (c *Company) Create(ctx echo.Context) error {
 	request := new(AddCompanyRequest)
 	err := ctx.Bind(request)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest)
+		log.Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	err = ctx.Validate(request)
+	if err != nil {
+		log.Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	company := &model.Company{Name: request.Name}
 	id, err := c.companyService.Create(ctx.Request().Context(), company)
@@ -58,8 +66,16 @@ func (c *Company) Update(ctx echo.Context) error {
 	request := new(UpdateCompanyRequest)
 	err := ctx.Bind(request)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest)
+		log.Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
+
+	err = ctx.Validate(request)
+	if err != nil {
+		log.Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
 	company := &model.Company{ID: request.UUID, Name: request.Name}
 	err = c.companyService.Update(ctx.Request().Context(), company)
 

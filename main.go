@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
@@ -52,6 +53,7 @@ func main() {
 	companyHandler := handlers.NewCompany(companyService)
 
 	e := echo.New()
+	e.Validator = middleware.NewCustomValidator(validator.New())
 	auth := e.Group("api/auth")
 	auth.POST("/refresh-tokens", authHandler.Refresh)
 	auth.POST("/sign-in", authHandler.SignIn)

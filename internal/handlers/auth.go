@@ -21,7 +21,14 @@ func NewAuth(authService *service.Auth) *Auth {
 
 func (a *Auth) SignIn(ctx echo.Context) error {
 	request := new(signInRequest)
-	if err := ctx.Bind(request); err != nil {
+	err := ctx.Bind(request)
+	if err != nil {
+		log.Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	err = ctx.Validate(request)
+	if err != nil {
 		log.Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
@@ -46,12 +53,19 @@ func (a *Auth) SignIn(ctx echo.Context) error {
 
 func (a *Auth) SignUp(ctx echo.Context) error {
 	request := new(signUpRequest)
-	if err := ctx.Bind(request); err != nil {
+	err := ctx.Bind(request)
+	if err != nil {
 		log.Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	err := a.authService.SignUp(ctx.Request().Context(), request.Username, request.Password, request.Email)
+	err = ctx.Validate(request)
+	if err != nil {
+		log.Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	err = a.authService.SignUp(ctx.Request().Context(), request.Username, request.Password, request.Email)
 	if err != nil {
 		log.Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
@@ -62,7 +76,14 @@ func (a *Auth) SignUp(ctx echo.Context) error {
 
 func (a *Auth) Refresh(ctx echo.Context) error {
 	request := new(refreshTokenRequest)
-	if err := ctx.Bind(request); err != nil {
+	err := ctx.Bind(request)
+	if err != nil {
+		log.Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	err = ctx.Validate(request)
+	if err != nil {
 		log.Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
@@ -89,8 +110,15 @@ func (a *Auth) Logout(ctx echo.Context) error {
 	err := ctx.Bind(request)
 	if err != nil {
 		log.Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
+
+	err = ctx.Validate(request)
+	if err != nil {
+		log.Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
 	err = a.authService.Logout(ctx.Request().Context(), request.RefreshToken)
 
 	if err != nil {

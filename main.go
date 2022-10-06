@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/go-redis/redis/v9"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
@@ -30,14 +31,24 @@ func main() {
 		log.Fatal(err)
 	}
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGTERM)
+
 	db, err := pgxpool.Connect(ctx, cfg.ConnectionString)
-	defer cancel()
-	defer db.Close()
 	if err != nil {
-		log.Fatalf("Couldn't connect to database: %s", err)
+		log.Printf("Couldn't connect to database: %s", err)
+		os.Exit(1)
 	}
+	defer db.Close()
+
+	redisClient := buildRedis(cfg)
+	defer func(redisClient *redis.Client) {
+		err := redisClient.Close()
+		if err != nil {
+			log.Error(err)
+		}
+	}(redisClient)
 
 	refreshSessionRepository := postgre.NewRefresh(db)
 	refreshSessionService := service.NewRefreshSession(refreshSessionRepository)
@@ -49,10 +60,12 @@ func main() {
 	authHandler := handlers.NewAuth(authService)
 
 	companyRepository := postgre.NewCompanyRepository(db)
-	companyService := service.NewCompany(companyRepository)
+	logoRepository := postgre.NewLogoRepository(db)
+	companyService := service.NewCompany(companyRepository, logoRepository, redisClient)
 	companyHandler := handlers.NewCompany(companyService)
 
 	e := echo.New()
+
 	e.Validator = middleware.NewCustomValidator(validator.New())
 	auth := e.Group("api/auth")
 	auth.POST("/refresh-tokens", authHandler.Refresh)
@@ -89,4 +102,20 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func buildRedis(cfg *config.Config) *redis.Client {
+	opts := &redis.Options{
+		Addr:     fmt.Sprintf("%s:%d", cfg.RedisHost, cfg.RedisPort),
+		Password: cfg.RedisPass,
+	}
+
+	redisClient := redis.NewClient(opts)
+	_, err := redisClient.Ping(context.Background()).Result()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return redisClient
 }

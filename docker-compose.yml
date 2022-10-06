@@ -5,6 +5,7 @@ services:
     depends_on:
       - db
       - mongo
+      - redis
     build: ./
     ports:
       - "${APP_PORT}:${APP_PORT}"
@@ -17,6 +18,8 @@ services:
       - APP_PORT=${APP_PORT}
       - CONNECTION_STRING=${CONNECTION_STRING}
       - IS_MONGO=${IS_MONGO}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_HOST=${REDIS_HOST}
   db:
     container_name: postgres_db
     image: postgres:latest
@@ -58,7 +61,14 @@ services:
       - my-data:/data/db
     networks:
       - mynetwork
-
+  redis:
+    image: "redis:7-alpine"
+    hostname: redis
+    ports:
+      - "6379:6379"
+    command: sh -c "redis-server --appendonly yes"
+    volumes:
+      - my-data:/data/redis
 volumes:
   my-data:
     external: true

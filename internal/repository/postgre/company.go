@@ -44,15 +44,15 @@ func (c *Company) GetAll(ctx context.Context) ([]*model.Company, error) {
 }
 
 func (c *Company) GetOne(ctx context.Context, id uuid.UUID) (*model.Company, error) {
-	var company *model.Company
+	var company model.Company
 	err := c.db.QueryRow(ctx, "SELECT id, name FROM company WHERE id = $1", id).Scan(&company.ID, &company.Name)
-	return company, err
+	return &company, err
 }
 
 func (c *Company) Create(ctx context.Context, company *model.Company) (uuid.UUID, error) {
 	company.ID = uuid.New()
-	err := c.db.QueryRow(ctx, "INSERT INTO company(id, name) VALUES ($1, $2) RETURNING id, name;",
-		company.ID, company.Name).Scan(&company.ID, &company.Name)
+	_, err := c.db.Exec(ctx, "INSERT INTO company(id, name) VALUES ($1, $2) RETURNING id, name;",
+		company.ID, company.Name)
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("cannot create Company: %v", err)
 	}

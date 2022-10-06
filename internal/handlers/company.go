@@ -98,3 +98,45 @@ func (c *Company) Delete(ctx echo.Context) error {
 	}
 	return ctx.JSON(http.StatusOK, "Company deleted")
 }
+
+func (c *Company) AddLogo(ctx echo.Context) error {
+	request := new(AddLogoRequest)
+	err := ctx.Bind(request)
+	if err != nil {
+		log.Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	err = ctx.Validate(request)
+	if err != nil {
+		log.Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	err = c.companyService.AddLogo(ctx.Request().Context(), request.companyID, request.picture)
+	if err != nil {
+		log.Error(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	return ctx.JSON(http.StatusOK, "Logo has been added")
+}
+
+func (c *Company) GetLogoByCompanyID(ctx echo.Context) error {
+	request := new(GetCompanyLogoRequest)
+	err := ctx.Bind(request)
+	if err != nil {
+		log.Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	err = ctx.Validate(request)
+	if err != nil {
+		log.Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	logo, err := c.companyService.GetLogo(ctx.Request().Context(), request.companyID)
+	if err != nil {
+		log.Error(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	return ctx.JSON(http.StatusOK, logo)
+}

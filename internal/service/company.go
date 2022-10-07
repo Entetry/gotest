@@ -5,6 +5,10 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
+	"io"
+	"mime/multipart"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/go-redis/redis/v9"
@@ -18,6 +22,8 @@ import (
 
 const (
 	CompanyAlreadyHasALogoErr = "company already has a logo"
+	FileSaveError             = "file save error"
+	ImageExt                  = ".jpeg"
 )
 
 type Company struct {
@@ -64,27 +70,70 @@ func (c *Company) Delete(ctx context.Context, id uuid.UUID) error {
 	return c.companyRepository.Delete(ctx, id)
 }
 
-func (c *Company) AddLogo(ctx context.Context, companyId uuid.UUID, image []byte) error {
-	logo, err := c.logoRepository.GetByCompanyID(ctx, companyId)
+func (c *Company) AddLogo(ctx context.Context, companyId string, file *multipart.FileHeader) error {
+	id, err := uuid.Parse(companyId)
+	if err != nil {
+		return err
+	}
+	logo, err := c.logoRepository.GetByCompanyID(ctx, id)
 	if err != nil {
 		return err
 	}
 	if logo != nil {
 		return fmt.Errorf(CompanyAlreadyHasALogoErr)
 	}
-	err = c.logoRepository.Create(ctx, companyId, image)
+	imageUrl := c.buildFileUrl(companyId)
+	err = c.saveFile(imageUrl, file)
+	if err != nil {
+		return fmt.Errorf(FileSaveError)
+	}
+
+	err = c.logoRepository.Create(ctx, id, imageUrl)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *Company) GetLogo(ctx context.Context, companyId uuid.UUID) (*model.Logo, error) {
+func (c *Company) buildFileUrl(companyId string) string {
+	wd, _ := os.Getwd()
+	basepath := filepath.Join(wd, "data", "company")
+	os.MkdirAll(basepath, os.ModePerm)
+	fileUri := filepath.Join(basepath, companyId)
+	return fmt.Sprintf("%s%s", fileUri, ImageExt)
+}
+
+func (c *Company) saveFile(fileName string, file *multipart.FileHeader) error {
+	src, err := file.Open()
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+
+	dst, err := os.Create(fileName)
+	if err != nil {
+		return err
+	}
+	defer dst.Close()
+
+	if _, err = io.Copy(dst, src); err != nil {
+		return err
+	}
+
+	err = dst.Sync()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Company) GetLogo(ctx context.Context, companyId uuid.UUID) (string, error) {
 	logo, err := c.logoRepository.GetByCompanyID(ctx, companyId)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return logo, nil
+	return logo.Image, nil
 }
 
 func (c *Company) getCompanyRedis(ctx context.Context, id uuid.UUID) (*model.Company, error) {

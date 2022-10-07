@@ -80,6 +80,8 @@ func main() {
 	company.GET("/:id", companyHandler.GetByID)
 	company.PUT("", companyHandler.Update)
 	company.DELETE("/:id", companyHandler.Delete)
+	company.POST("/logo", companyHandler.AddLogo)
+	company.GET("/logo/:id", companyHandler.GetLogoByCompanyID)
 
 	err = e.Start(fmt.Sprintf(":%d", cfg.Port))
 	if err != nil {

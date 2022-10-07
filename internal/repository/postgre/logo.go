@@ -12,7 +12,7 @@ import (
 )
 
 type LogoRepository interface {
-	Create(ctx context.Context, companyId uuid.UUID, image []byte) error
+	Create(ctx context.Context, companyId uuid.UUID, url string) error
 	GetByCompanyID(ctx context.Context, companyID uuid.UUID) (*model.Logo, error)
 }
 
@@ -25,11 +25,11 @@ func NewLogoRepository(db *pgxpool.Pool) *Logo {
 		db: db}
 }
 
-func (l *Logo) Create(ctx context.Context, companyId uuid.UUID, image []byte) error {
+func (l *Logo) Create(ctx context.Context, companyId uuid.UUID, url string) error {
 	var logo model.Logo
 	logo.ID = uuid.New()
 	logo.CompanyID = companyId
-	logo.Image = image
+	logo.Image = url
 	_, err := l.db.Exec(ctx, `INSERT INTO logo (id, company_id, image) VALUES ($1, $2, $3)`, logo.ID,
 		logo.CompanyID, logo.Image)
 

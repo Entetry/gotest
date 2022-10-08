@@ -1,3 +1,4 @@
+// Package middleware contains middleware filter structures
 package middleware
 
 import (
@@ -7,16 +8,19 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// CustomValidator validation middleware
 type CustomValidator struct {
 	Validator *validator.Validate
 }
 
-func NewCustomValidator(validator *validator.Validate) *CustomValidator {
+// NewCustomValidator creates CustomValidator object
+func NewCustomValidator(v *validator.Validate) *CustomValidator {
 	return &CustomValidator{
-		Validator: validator,
+		Validator: v,
 	}
 }
 
+// Validate validates any object by go-playground/validator/v10 tags
 func (cv *CustomValidator) Validate(i interface{}) error {
 	if err := cv.Validator.Struct(i); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())

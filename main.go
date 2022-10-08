@@ -1,3 +1,4 @@
+// Package main
 package main
 
 import (
@@ -37,15 +38,14 @@ func main() {
 
 	db, err := pgxpool.Connect(ctx, cfg.ConnectionString)
 	if err != nil {
-		log.Printf("Couldn't connect to database: %s", err)
-		os.Exit(1)
+		log.Fatalf("Couldn't connect to database: %s\n", err) //nolint:errcheck,gocritic
 	}
 	defer db.Close()
 
 	redisClient := buildRedis(cfg)
 	defer func(redisClient *redis.Client) {
-		err := redisClient.Close()
-		if err != nil {
+		redisErr := redisClient.Close()
+		if redisErr != nil {
 			log.Error(err)
 		}
 	}(redisClient)

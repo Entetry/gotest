@@ -15,12 +15,13 @@ import (
 )
 
 const (
-	WrongPassword         = "wrong password"
-	RefreshTokenIsExpired = "refresh token is expired"
-	InvalidFingerprint    = "invalid fingerprint"
-	UserAlreadyExist      = "user already exists"
+	wrongPassword         = "wrong password"
+	refreshTokenIsExpired = "refresh token is expired"
+	invalidFingerprint    = "invalid fingerprint"
+	userAlreadyExist      = "user already exists"
 )
 
+// AuthService service interface
 type AuthService interface {
 	SignIn(ctx context.Context, username, password string, tokenParam *model.TokenParam) (refreshToken, accessToken string, err error)
 	SignUp(ctx context.Context, username, password, email string) error
@@ -28,12 +29,14 @@ type AuthService interface {
 	Logout(ctx context.Context, refreshToken string) (err error)
 }
 
+// Auth service struct
 type Auth struct {
 	userService    *User
 	refreshSession *RefreshSession
 	cfg            *config.JwtConfig
 }
 
+// NewAuthService creates new Auth service
 func NewAuthService(userService *User, refreshSession *RefreshSession, cfg *config.JwtConfig) *Auth {
 	return &Auth{
 		userService:    userService,
@@ -41,21 +44,23 @@ func NewAuthService(userService *User, refreshSession *RefreshSession, cfg *conf
 		cfg:            cfg}
 }
 
+// SignIn sign in user and return tokens
 func (a *Auth) SignIn(ctx context.Context, username, password string, tokenParam *model.TokenParam) (refreshToken, accessToken string, err error) {
 	user, err := a.attemptLogin(ctx, username, password)
 	if err != nil {
-		return "", "", fmt.Errorf(WrongPassword)
+		return "", "", fmt.Errorf(wrongPassword)
 	}
 	return a.generateTokens(ctx, user.ID.String(), tokenParam)
 }
 
+// SignUp  sign up new user
 func (a *Auth) SignUp(ctx context.Context, username, password, email string) error {
 	user, err := a.userService.GetByUsername(ctx, username)
 	if err != nil {
 		return err
 	}
 	if user != nil {
-		return fmt.Errorf(UserAlreadyExist)
+		return fmt.Errorf(userAlreadyExist)
 	}
 
 	_, err = a.userService.Create(ctx, username, password, email)
@@ -65,6 +70,7 @@ func (a *Auth) SignUp(ctx context.Context, username, password, email string) err
 	return nil
 }
 
+// RefreshTokens update refresh token
 func (a *Auth) RefreshTokens(ctx context.Context, refreshToken string,
 	tokenParam *model.TokenParam) (newRefreshToken, accessToken string, err error) {
 	session, err := a.refreshSession.PopSession(ctx, refreshToken)
@@ -76,7 +82,7 @@ func (a *Auth) RefreshTokens(ctx context.Context, refreshToken string,
 		if err != nil {
 			log.Error(err)
 		}
-		return "", "", fmt.Errorf(RefreshTokenIsExpired)
+		return "", "", fmt.Errorf(refreshTokenIsExpired)
 	}
 
 	if !a.checkFingerprint(session, tokenParam) {
@@ -84,12 +90,13 @@ func (a *Auth) RefreshTokens(ctx context.Context, refreshToken string,
 		if err != nil {
 			log.Error(err)
 		}
-		return "", "", fmt.Errorf(InvalidFingerprint)
+		return "", "", fmt.Errorf(invalidFingerprint)
 	}
 
 	return a.generateTokens(ctx, session.UserID, tokenParam)
 }
 
+// Logout log out from session
 func (a *Auth) Logout(ctx context.Context, refreshToken string) (err error) {
 	err = a.refreshSession.Delete(ctx, refreshToken)
 	if err != nil {
@@ -116,18 +123,18 @@ func (a *Auth) attemptLogin(ctx context.Context, username, password string) (*mo
 	return user, nil
 }
 
-func (a *Auth) generateTokens(ctx context.Context, userId string, tokenParam *model.TokenParam) (refreshToken, accessToken string, err error) {
+func (a *Auth) generateTokens(ctx context.Context, userID string, tokenParam *model.TokenParam) (refreshToken, accessToken string, err error) {
 	refreshToken = uuid.New().String()
 	err = a.refreshSession.SaveSession(ctx, &model.RefreshSession{
 		RefreshToken: refreshToken,
-		UserID:       userId,
+		UserID:       userID,
 		ExpiresAt:    time.Now().Add(a.cfg.RefreshTokenExpiration).Unix(),
 		TokenParam:   *tokenParam,
 	})
 	if err != nil {
 		return "", "", err
 	}
-	accessToken, err = a.generateAccessToken(userId, a.cfg.AccessTokenKey, time.Now().Add(a.cfg.AccessTokenExpiration).Unix())
+	accessToken, err = a.generateAccessToken(userID, a.cfg.AccessTokenKey, time.Now().Add(a.cfg.AccessTokenExpiration).Unix())
 	if err != nil {
 		return "", "", err
 	}

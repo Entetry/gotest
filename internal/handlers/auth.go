@@ -11,14 +11,17 @@ import (
 	"entetry/gotest/internal/service"
 )
 
+// Auth handler struct
 type Auth struct {
 	authService *service.Auth
 }
 
+// NewAuth creates new auth handler
 func NewAuth(authService *service.Auth) *Auth {
 	return &Auth{authService: authService}
 }
 
+// SignIn sign in into account
 func (a *Auth) SignIn(ctx echo.Context) error {
 	request := new(signInRequest)
 	err := ctx.Bind(request)
@@ -51,6 +54,7 @@ func (a *Auth) SignIn(ctx echo.Context) error {
 	})
 }
 
+// SignUp sign up into account
 func (a *Auth) SignUp(ctx echo.Context) error {
 	request := new(signUpRequest)
 	err := ctx.Bind(request)
@@ -74,6 +78,7 @@ func (a *Auth) SignUp(ctx echo.Context) error {
 	return ctx.String(http.StatusCreated, "Registration completed successfully")
 }
 
+// Refresh update refresh token
 func (a *Auth) Refresh(ctx echo.Context) error {
 	request := new(refreshTokenRequest)
 	err := ctx.Bind(request)
@@ -105,6 +110,7 @@ func (a *Auth) Refresh(ctx echo.Context) error {
 	})
 }
 
+// Logout log out from session
 func (a *Auth) Logout(ctx echo.Context) error {
 	request := new(logoutRequest)
 	err := ctx.Bind(request)

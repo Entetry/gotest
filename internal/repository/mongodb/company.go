@@ -1,3 +1,4 @@
+// Package mongodb contains mongo repositories
 package mongodb
 
 import (
@@ -13,16 +14,19 @@ import (
 	"entetry/gotest/internal/model"
 )
 
+// Company mongo company repository struct
 type Company struct {
 	db *mongo.Collection
 }
 
+// NewCompanyRepository Creates Company object
 func NewCompanyRepository(db *mongo.Database) *Company {
 	return &Company{
 		db: db.Collection("company"),
 	}
 }
 
+// GetAll get all companies from db
 func (c *Company) GetAll(ctx context.Context) ([]*model.Company, error) {
 	cursor, err := c.db.Find(ctx, bson.M{})
 	if err != nil {
@@ -33,8 +37,8 @@ func (c *Company) GetAll(ctx context.Context) ([]*model.Company, error) {
 
 	for cursor.Next(ctx) {
 		company := new(model.Company)
-		if err := cursor.Decode(company); err != nil {
-			return nil, err
+		if decodeErr := cursor.Decode(company); decodeErr != nil {
+			return nil, decodeErr
 		}
 		result = append(result, company)
 	}
@@ -45,6 +49,7 @@ func (c *Company) GetAll(ctx context.Context) ([]*model.Company, error) {
 	return result, nil
 }
 
+// GetOne get Company by its uuid
 func (c *Company) GetOne(ctx context.Context, id uuid.UUID) (*model.Company, error) {
 	company := &model.Company{}
 	err := c.db.FindOne(ctx, bson.M{"_id": id}).Decode(company)
@@ -56,6 +61,7 @@ func (c *Company) GetOne(ctx context.Context, id uuid.UUID) (*model.Company, err
 	return company, nil
 }
 
+// Create creates New Company record in db
 func (c *Company) Create(ctx context.Context, company *model.Company) (uuid.UUID, error) {
 	company.ID = uuid.New()
 	_, err := c.db.InsertOne(ctx, company)
@@ -65,6 +71,7 @@ func (c *Company) Create(ctx context.Context, company *model.Company) (uuid.UUID
 	return company.ID, err
 }
 
+// Update updates company in db
 func (c *Company) Update(ctx context.Context, company *model.Company) error {
 	r, err := c.db.UpdateOne(ctx, bson.M{"_id": company.ID}, bson.M{"$set": bson.M{"name": company.Name}})
 	if err != nil {
@@ -76,6 +83,7 @@ func (c *Company) Update(ctx context.Context, company *model.Company) error {
 	return nil
 }
 
+// Delete delete company from db
 func (c *Company) Delete(ctx context.Context, id uuid.UUID) error {
 	_, err := c.db.DeleteOne(ctx, bson.M{"_id": id})
 	if err != nil {

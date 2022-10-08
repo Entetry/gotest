@@ -12,21 +12,25 @@ import (
 	"entetry/gotest/internal/model"
 )
 
+// UserRepository user repository interface
 type UserRepository interface {
 	Create(ctx context.Context, username, pwdHash, email string) (uuid.UUID, error)
 	GetByUsername(ctx context.Context, username string) (*model.User, error)
 }
 
+// User User postgres repository struct
 type User struct {
 	db *pgxpool.Pool
 }
 
+// NewUserRepository creates new user repository object
 func NewUserRepository(db *pgxpool.Pool) *User {
 	return &User{
 		db: db,
 	}
 }
 
+// Create insert user record in db
 func (u *User) Create(ctx context.Context, username, pwdHash, email string) (uuid.UUID, error) {
 	var user model.User
 	user.ID = uuid.New()
@@ -41,6 +45,7 @@ func (u *User) Create(ctx context.Context, username, pwdHash, email string) (uui
 	return user.ID, nil
 }
 
+// GetByUsername return user by his username
 func (u *User) GetByUsername(ctx context.Context, username string) (*model.User, error) {
 	var user model.User
 	err := u.db.QueryRow(ctx,

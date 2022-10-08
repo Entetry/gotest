@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	log "github.com/sirupsen/logrus"
@@ -13,6 +12,7 @@ import (
 	"entetry/gotest/internal/model"
 )
 
+// RefreshSessionRepository refresh session repository interface
 type RefreshSessionRepository interface {
 	Create(ctx context.Context, session *model.RefreshSession) error
 	GetByRefreshToken(ctx context.Context, refreshToken string) (*model.RefreshSession, error)
@@ -21,26 +21,17 @@ type RefreshSessionRepository interface {
 	DeleteUserSessions(ctx context.Context, userID string) error
 }
 
+// RefreshSession refresh session postgres repository struct
 type RefreshSession struct {
 	db *pgxpool.Pool
 }
 
+// NewRefresh creates new refresh session repository object
 func NewRefresh(db *pgxpool.Pool) *RefreshSession {
 	return &RefreshSession{db: db}
 }
 
-func (r *RefreshSession) GetHashByUserID(ctx context.Context, userID uuid.UUID) (string, error) {
-	var hash string
-
-	err := r.db.QueryRow(ctx, "SELECT hash FROM refresh_sessions WHERE user_id = $1", userID).Scan(&hash)
-	if err != nil {
-		log.Errorf("Get hash by user id failed : %v\n", err)
-		return "", err
-	}
-
-	return hash, nil
-}
-
+// Create creates refresh session record in db
 func (r *RefreshSession) Create(ctx context.Context, session *model.RefreshSession) error {
 	_, err := r.db.Exec(ctx, `INSERT INTO refresh_sessions (refresh_token, user_id, ua, fingerprint, ip, expires_at)
 		VALUES ($1, $2, $3, $4, $5, $6)`, session.RefreshToken, session.UserID, session.UserAgent, session.Fingerprint,
@@ -52,6 +43,7 @@ func (r *RefreshSession) Create(ctx context.Context, session *model.RefreshSessi
 	return nil
 }
 
+// GetByRefreshToken return refresh session by refresh token
 func (r *RefreshSession) GetByRefreshToken(ctx context.Context, refreshToken string) (*model.RefreshSession, error) {
 	var session model.RefreshSession
 	err := r.db.QueryRow(ctx, `SELECT refresh_token, user_id, ua, fingerprint, ip, expires_at FROM refresh_sessions 
@@ -63,6 +55,7 @@ func (r *RefreshSession) GetByRefreshToken(ctx context.Context, refreshToken str
 	return &session, nil
 }
 
+// Count return count of current user sessions
 func (r *RefreshSession) Count(ctx context.Context, userID string) (int, error) {
 	var count int
 	err := r.db.QueryRow(ctx, `SELECT count(1) FROM refresh_sessions WHERE user_id = $1`, userID).Scan(&count)
@@ -72,6 +65,7 @@ func (r *RefreshSession) Count(ctx context.Context, userID string) (int, error) 
 	return count, nil
 }
 
+// Delete deletes refresh session from db
 func (r *RefreshSession) Delete(ctx context.Context, refreshToken string) error {
 	_, err := r.db.Exec(ctx, `DELETE FROM refresh_sessions WHERE refresh_token = $1`, refreshToken)
 	if err != nil {
@@ -80,6 +74,7 @@ func (r *RefreshSession) Delete(ctx context.Context, refreshToken string) error 
 	return nil
 }
 
+// DeleteUserSessions clear all user sessions
 func (r *RefreshSession) DeleteUserSessions(ctx context.Context, userID string) error {
 	_, err := r.db.Exec(ctx, `DELETE FROM refresh_sessions WHERE user_id = $1`, userID)
 	if err != nil {

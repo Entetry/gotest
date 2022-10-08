@@ -1,3 +1,4 @@
+// Package postgre contains postgre repository structs
 package postgre
 
 import (
@@ -10,16 +11,28 @@ import (
 	"entetry/gotest/internal/model"
 )
 
+// CompanyRepository interface for company repository
+type CompanyRepository interface {
+	Create(ctx context.Context, company *model.Company) (uuid.UUID, error)
+	Update(ctx context.Context, company *model.Company) error
+	Delete(ctx context.Context, uuid uuid.UUID) error
+	GetOne(ctx context.Context, uuid uuid.UUID) (*model.Company, error)
+	GetAll(ctx context.Context) ([]*model.Company, error)
+}
+
+// Company postgres company repository struct
 type Company struct {
 	db *pgxpool.Pool
 }
 
+// NewCompanyRepository Creates Company object
 func NewCompanyRepository(db *pgxpool.Pool) *Company {
 	return &Company{
 		db: db,
 	}
 }
 
+// GetAll get all companies from db
 func (c *Company) GetAll(ctx context.Context) ([]*model.Company, error) {
 	rows, err := c.db.Query(ctx, `SELECT id, name FROM company`)
 	if err != nil {
@@ -43,12 +56,14 @@ func (c *Company) GetAll(ctx context.Context) ([]*model.Company, error) {
 	return results, nil
 }
 
+// GetOne gets Company by its uuid
 func (c *Company) GetOne(ctx context.Context, id uuid.UUID) (*model.Company, error) {
 	var company model.Company
 	err := c.db.QueryRow(ctx, "SELECT id, name FROM company WHERE id = $1", id).Scan(&company.ID, &company.Name)
 	return &company, err
 }
 
+// Create creates New Company record in db
 func (c *Company) Create(ctx context.Context, company *model.Company) (uuid.UUID, error) {
 	company.ID = uuid.New()
 	_, err := c.db.Exec(ctx, "INSERT INTO company(id, name) VALUES ($1, $2) RETURNING id, name;",
@@ -59,6 +74,7 @@ func (c *Company) Create(ctx context.Context, company *model.Company) (uuid.UUID
 	return company.ID, err
 }
 
+// Update updates company in db
 func (c *Company) Update(ctx context.Context, company *model.Company) error {
 	_, err := c.db.Exec(ctx, "UPDATE company SET name = $2 WHERE id=$1 RETURNING id, name;",
 		company.ID, company.Name)
@@ -68,6 +84,7 @@ func (c *Company) Update(ctx context.Context, company *model.Company) error {
 	return err
 }
 
+// Delete deletes company from db
 func (c *Company) Delete(ctx context.Context, id uuid.UUID) error {
 	_, err := c.db.Exec(ctx, "DELETE FROM company WHERE id = $1", id)
 	if err != nil {

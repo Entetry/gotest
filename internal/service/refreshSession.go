@@ -11,15 +11,18 @@ const (
 	maxUserSessions = 5
 )
 
+// RefreshSession Refresh Session service struct
 type RefreshSession struct {
 	refreshSessionRepository postgre.RefreshSessionRepository
 }
 
+// NewRefreshSession creates new Refresh Session service
 func NewRefreshSession(refreshSessionRepository postgre.RefreshSessionRepository) *RefreshSession {
 	return &RefreshSession{
 		refreshSessionRepository: refreshSessionRepository}
 }
 
+// PopSession gets refresh session and removes it from db
 func (r *RefreshSession) PopSession(ctx context.Context, refreshToken string) (*model.RefreshSession, error) {
 	session, err := r.refreshSessionRepository.GetByRefreshToken(ctx, refreshToken)
 	if err != nil {
@@ -34,6 +37,7 @@ func (r *RefreshSession) PopSession(ctx context.Context, refreshToken string) (*
 	return session, nil
 }
 
+// SaveSession save refresh session to db( delete all sessions if user has >5 sessions)
 func (r *RefreshSession) SaveSession(ctx context.Context, session *model.RefreshSession) error {
 	count, err := r.refreshSessionRepository.Count(ctx, session.UserID)
 
@@ -56,10 +60,12 @@ func (r *RefreshSession) SaveSession(ctx context.Context, session *model.Refresh
 	return nil
 }
 
-func (r *RefreshSession) DeleteUserSessions(ctx context.Context, userId string) error {
-	return r.refreshSessionRepository.DeleteUserSessions(ctx, userId)
+// DeleteUserSessions clear all user sessions
+func (r *RefreshSession) DeleteUserSessions(ctx context.Context, userID string) error {
+	return r.refreshSessionRepository.DeleteUserSessions(ctx, userID)
 }
 
+// Delete delete refresh session by token
 func (r *RefreshSession) Delete(ctx context.Context, refreshToken string) error {
 	return r.refreshSessionRepository.Delete(ctx, refreshToken)
 }

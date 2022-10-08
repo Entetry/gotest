@@ -7,6 +7,7 @@ import (
 	"entetry/gotest/internal/model"
 )
 
+// NewJwtMiddleware creates jwt middleware object
 func NewJwtMiddleware(accessTokenKey string) echo.MiddlewareFunc {
 	return middleware.JWTWithConfig(middleware.JWTConfig{
 		SigningKey: []byte(accessTokenKey),

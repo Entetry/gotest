@@ -21,7 +21,12 @@ func NewCompany(companyService *service.Company) *Company {
 	return &Company{companyService: companyService}
 }
 
-// GetAll return all companies
+// GetAll godoc
+// @Summary Retrieves all companies
+// @Produce json
+// @Success 200 {array} model.Company
+// @Failure 400
+// @Router  /company [get]
 func (c *Company) GetAll(ctx echo.Context) error {
 	companies, err := c.companyService.GetAll(ctx.Request().Context())
 	if err != nil {
@@ -30,7 +35,12 @@ func (c *Company) GetAll(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, companies)
 }
 
-// GetByID return by ID
+// GetByID godoc
+// @Summary Retrieves company based on given ID
+// @Produce json
+// @Success 200 {object} model.Company
+// @Failure 400
+// @Router  /company/{id} [get]
 func (c *Company) GetByID(ctx echo.Context) error {
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
@@ -45,7 +55,14 @@ func (c *Company) GetByID(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, company)
 }
 
-// Create add company
+// Create godoc
+// @Summary create company
+// @Produce json
+// @Param   input body addCompanyRequest true "name"
+// @Success 200
+// @Failure 400
+// @Failure 500
+// @Router  /company [post]
 func (c *Company) Create(ctx echo.Context) error {
 	request := new(addCompanyRequest)
 	err := ctx.Bind(request)
@@ -67,7 +84,14 @@ func (c *Company) Create(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, id)
 }
 
-// Update company
+// Update godoc
+// @Summary update company
+// @Produce json
+// @Param   input body updateCompanyRequest true "uuid" "name"
+// @Success 200
+// @Failure 400
+// @Failure 500
+// @Router  /company [put]
 func (c *Company) Update(ctx echo.Context) error {
 	request := new(updateCompanyRequest)
 	err := ctx.Bind(request)
@@ -92,7 +116,12 @@ func (c *Company) Update(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, "Company updated")
 }
 
-// Delete Company
+// Delete godoc
+// @Summary delete company based on given ID
+// @Produce json
+// @Success 200
+// @Failure 400
+// @Router  /company/{id} [delete]
 func (c *Company) Delete(ctx echo.Context) error {
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
@@ -106,7 +135,13 @@ func (c *Company) Delete(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, "Company deleted")
 }
 
-// GetLogoByCompanyID get logo
+// GetLogoByCompanyID godoc
+// @Summary Retrieves company logo based on given company ID
+// @Produce json
+// @Success 200
+// @Failure 400
+// @Failure 500
+// @Router  /company/logo/{id} [get]
 func (c *Company) GetLogoByCompanyID(ctx echo.Context) error {
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
@@ -124,7 +159,13 @@ func (c *Company) GetLogoByCompanyID(ctx echo.Context) error {
 	return ctx.File(logo)
 }
 
-// AddLogo add new logo
+// AddLogo godoc
+// @Summary add new company logo
+// @Produce mpfd
+
+// @Success 200
+// @Failure 500
+// @Router  /company/logo [post]
 func (c *Company) AddLogo(ctx echo.Context) error {
 	companyID := ctx.FormValue("companyID")
 	file, err := ctx.FormFile("image")

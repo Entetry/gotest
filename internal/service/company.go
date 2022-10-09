@@ -45,7 +45,7 @@ func (c *Company) GetAll(ctx context.Context) ([]*model.Company, error) {
 	return c.companyRepository.GetAll(ctx)
 }
 
-// GetByID return company by its uuid
+// GetByID Retrieves company based on given ID
 func (c *Company) GetByID(ctx context.Context, id uuid.UUID) (*model.Company, error) {
 	company, err := c.getCompanyRedis(ctx, id)
 	if err != nil {
@@ -62,7 +62,7 @@ func (c *Company) GetByID(ctx context.Context, id uuid.UUID) (*model.Company, er
 	return company, err
 }
 
-// Create create company
+// Create  company
 func (c *Company) Create(ctx context.Context, company *model.Company) (uuid.UUID, error) {
 	return c.companyRepository.Create(ctx, company)
 }

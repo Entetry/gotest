@@ -14,7 +14,9 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
+	echoSwagger "github.com/swaggo/echo-swagger"
 
+	_ "entetry/gotest/docs"
 	"entetry/gotest/internal/config"
 	"entetry/gotest/internal/handlers"
 	"entetry/gotest/internal/middleware"
@@ -22,6 +24,15 @@ import (
 	"entetry/gotest/internal/service"
 )
 
+// @title          Gotest Swagger API
+// @version        1.0
+// @description    Swagger API for Golang Project gotest.
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name  API Support
+// @contact.email antonklintsevich@gmail.com
+
+// @BasePath /api
 func main() {
 	cfg, err := config.New()
 	if err != nil {
@@ -73,7 +84,7 @@ func main() {
 	auth.POST("/sign-up", authHandler.SignUp)
 	auth.POST("/logout", authHandler.Logout)
 
-	company := e.Group("company")
+	company := e.Group("api/company")
 	company.Use(middleware.NewJwtMiddleware(jwtCfg.AccessTokenKey))
 	company.POST("", companyHandler.Create)
 	company.GET("", companyHandler.GetAll)
@@ -82,6 +93,8 @@ func main() {
 	company.DELETE("/:id", companyHandler.Delete)
 	company.POST("/logo", companyHandler.AddLogo)
 	company.GET("/logo/:id", companyHandler.GetLogoByCompanyID)
+
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	err = e.Start(fmt.Sprintf(":%d", cfg.Port))
 	if err != nil {

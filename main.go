@@ -8,18 +8,24 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/go-redis/redis/v9"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
 	echoSwagger "github.com/swaggo/echo-swagger"
 
 	_ "entetry/gotest/docs"
+	"entetry/gotest/internal/cache"
 	"entetry/gotest/internal/config"
+	"entetry/gotest/internal/consumer"
+	"entetry/gotest/internal/event"
 	"entetry/gotest/internal/handlers"
 	"entetry/gotest/internal/middleware"
+	"entetry/gotest/internal/producer"
 	"entetry/gotest/internal/repository/postgre"
 	"entetry/gotest/internal/service"
 )
@@ -70,10 +76,15 @@ func main() {
 	authService := service.NewAuthService(userService, refreshSessionService, jwtCfg)
 	authHandler := handlers.NewAuth(authService)
 
+	redisProducer := producer.NewRedisCompanyProducer(redisClient)
+	cacheCompany := cache.NewLocalCache()
+
 	companyRepository := postgre.NewCompanyRepository(db)
 	logoRepository := postgre.NewLogoRepository(db)
-	companyService := service.NewCompany(companyRepository, logoRepository, redisClient)
+	companyService := service.NewCompany(companyRepository, logoRepository, cacheCompany, redisProducer)
 	companyHandler := handlers.NewCompany(companyService)
+
+	go consumeCompanies(redisClient, cacheCompany)
 
 	e := echo.New()
 
@@ -117,6 +128,20 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func consumeCompanies(redisClient *redis.Client, localCache *cache.LocalCache) {
+	redisCompanyConsumer := consumer.NewRedisCompanyConsumer(redisClient, fmt.Sprintf("%d000-0", time.Now().Unix()))
+	go redisCompanyConsumer.Consume(context.Background(), func(id uuid.UUID, action, name string) {
+		switch action {
+		case event.UPDATE:
+			localCache.Update(id, name)
+		case event.DELETE:
+			localCache.Delete(id)
+		default:
+			log.Error("Unknown event")
+		}
+	})
 }
 
 func buildRedis(cfg *config.Config) *redis.Client {

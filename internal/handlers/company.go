@@ -162,7 +162,6 @@ func (c *Company) GetLogoByCompanyID(ctx echo.Context) error {
 // AddLogo godoc
 // @Summary add new company logo
 // @Produce mpfd
-
 // @Success 200
 // @Failure 500
 // @Router  /company/logo [post]
